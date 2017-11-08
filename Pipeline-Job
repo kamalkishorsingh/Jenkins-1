@@ -1,0 +1,31 @@
+node {
+stage ('Disable_Autoscaling_Policy') {
+    build job: 'Disable_Autoscaling_Policy'
+}
+stage ('Deploy_AzB') {
+    build job: 'Deploy_AzB'
+}
+
+parameters {
+        string(defaultValue: Approve, description: '', name: 'userFlag')
+    }
+
+stage ("REQUESTED_ACTIONS") {
+    
+    script {
+        env.RELEASE_SCOPE = input message: 'do you want to deploy to Deploy_AzA?', ok: 'Release',
+        parameters: [string(defaultValue: 'Approve', description: '', name: 'userFlag')]
+    }  
+    echo "${env.RELEASE_SCOPE}"
+}
+    
+
+stage ('Approve_and_Reject') {
+    build job: 'Approve_and_Reject', parameters: [[$class: 'StringParameterValue', name: 'REQUESTED_ACTIONS', value: "${env.RELEASE_SCOPE}"]]
+}
+
+  
+    stage ('Enable_Autoscaling') {
+        build job: 'Enable_Autoscaling'
+    }
+}
